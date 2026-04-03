@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ADR-SA Project Portfolio</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #020f06;
+    --bg2: #041209;
+    --surface: #071a0c;
+    --surface2: #0a2212;
+    --border: #1a4028;
+    --glow: #00e87a;
+    --glow2: #00a854;
+    --accent: #a8ff78;
+    --accent2: #f9c74f;
+    --text: #b8d9c2;
+    --text-dim: #527a60;
+    --text-bright: #e8f5ec;
+    --gold: #f9c74f;
+    --red: #ff4d6d;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    overflow-x: hidden;
+    cursor: none;
+    /* Dark-to-light green vertical gradient across the whole page */
+    background-image:
+      linear-gradient(
+        180deg,
+        #020f06 0%,
+        #041509 8%,
+        #061d0d 18%,
+        #082814 30%,
+        #0d3a1c 44%,
+        #124d26 58%,
+        #1a6633 72%,
+        #237a3e 84%,
+        #2e9150 94%,
+        #3aaa61 100%
+      );
+    background-attachment: fixed;
+  }
+
+  /* ── CUSTOM CURSOR ── */
+  .cursor {
+    position: fixed; width: 8px; height: 8px;
+    background: var(--glow); border-radius: 50%;
+    pointer-events: none; z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: transform 0.1s, background 0.2s;
+    box-shadow: 0 0 12px var(--glow), 0 0 24px var(--glow);
+  }
+  .cursor-ring {
+    position: fixed; width: 32px; height: 32px;
+    border: 1px solid rgba(0, 232, 122, 0.4);
+    border-radius: 50%; pointer-events: none; z-index: 9998;
+    transform: translate(-50%, -50%);
+    transition: transform 0.15s ease-out, width 0.2s, height 0.2s, border-color 0.2s;
+  }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--glow2); border-radius: 2px; }
+
+  /* ── CIRCUIT BACKGROUND ── */
+  .circuit-bg {
+    position: fixed; inset: 0; z-index: 0; opacity: 0.06;
+    background-image:
+      linear-gradient(rgba(0,232,122,0.6) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,232,122,0.6) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+  }
+  .circuit-bg::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 80% 60% at 50% 0%, transparent 40%, rgba(2,15,6,0.7) 100%);
+  }
+
+  /* ── NOISE OVERLAY ── */
+  .noise {
+    position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: 0.025;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    padding: 1rem 3rem;
+    display: flex; align-items: center; justify-content: space-between;
+    background: linear-gradient(180deg, rgba(2,15,6,0.97) 0%, transparent 100%);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(0,232,122,0.1);
+  }
+  .nav-logo {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem; color: var(--glow);
+    letter-spacing: 0.2em; text-transform: uppercase;
+  }
+  .nav-links {
+    display: flex; gap: 2.5rem; list-style: none;
+  }
+  .nav-links a {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem; color: var(--text-dim);
+    text-decoration: none; letter-spacing: 0.15em;
+    text-transform: uppercase;
+    transition: color 0.2s;
+    position: relative;
+  }
+  .nav-links a::after {
+    content: ''; position: absolute; bottom: -4px; left: 0; right: 0;
+    height: 1px; background: var(--glow);
+    transform: scaleX(0); transition: transform 0.2s;
+  }
+  .nav-links a:hover { color: var(--glow); }
+  .nav-links a:hover::after { transform: scaleX(1); }
+
+  /* ── HERO ── */
+  #hero {
+    position: relative; z-index: 2;
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: flex-start;
+    padding: 8rem 3rem 4rem;
+    max-width: 1200px; margin: 0 auto;
+    overflow: hidden;
+  }
+
+  .hero-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem; color: var(--accent);
+    letter-spacing: 0.3em; text-transform: uppercase;
+    margin-bottom: 1.5rem;
+    opacity: 0; animation: fadeUp 0.8s 0.2s ease forwards;
+  }
+  .hero-tag::before { content: '▶ '; color: var(--glow); }
+
+  .hero-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800; line-height: 1;
+    font-size: clamp(2.8rem, 6vw, 6rem);
+    color: var(--text-bright);
+    opacity: 0; animation: fadeUp 0.8s 0.4s ease forwards;
+    max-width: 14ch;
+  }
+  .hero-title .highlight {
+    background: linear-gradient(135deg, var(--glow) 0%, var(--glow2) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .hero-title .accent-line { color: var(--accent); }
+
+  .hero-sub {
+    margin-top: 2rem;
+    font-size: 1rem; color: var(--text-dim); line-height: 1.7;
+    max-width: 55ch;
+    opacity: 0; animation: fadeUp 0.8s 0.6s ease forwards;
+  }
+
+  .hero-meta {
+    margin-top: 3rem;
+    display: flex; gap: 3rem; flex-wrap: wrap;
+    opacity: 0; animation: fadeUp 0.8s 0.8s ease forwards;
+  }
+  .hero-meta-item { display: flex; flex-direction: column; gap: 0.25rem; }
+  .hero-meta-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem; color: var(--glow); letter-spacing: 0.2em; text-transform: uppercase;
+  }
+  .hero-meta-value { font-size: 0.85rem; color: var(--text-bright); font-weight: 500; }
+
+  .hero-cta {
+    margin-top: 3rem;
+    opacity: 0; animation: fadeUp 0.8s 1s ease forwards;
+    display: flex; gap: 1rem;
+  }
+  .btn-primary {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase;
+    padding: 0.85rem 2rem; text-decoration: none;
+    background: transparent;
+    border: 1px solid var(--glow);
+    color: var(--glow);
+    transition: all 0.2s;
+    position: relative; overflow: hidden;
+  }
+  .btn-primary::before {
+    content: ''; position: absolute; inset: 0;
+    background: var(--glow); transform: translateX(-100%);
+    transition: transform 0.25s ease;
+  }
+  .btn-primary:hover::before { transform: translateX(0); }
+  .btn-primary:hover { color: var(--bg); }
+  .btn-primary span { position: relative; z-index: 1; }
+
+  /* Glowing orbs */
+  .orb {
+    position: absolute; border-radius: 50%; pointer-events: none; filter: blur(80px);
+  }
+  .orb-1 { width: 600px; height: 600px; background: rgba(0,168,84,0.1); right: -200px; top: -100px; }
+  .orb-2 { width: 400px; height: 400px; background: rgba(168,255,120,0.06); right: 200px; bottom: 50px; }
+
+  /* ── SECTIONS ── */
+  section {
+    position: relative; z-index: 2;
+    padding: 6rem 3rem;
+    max-width: 1200px; margin: 0 auto;
+  }
+
+  .section-eyebrow {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem; color: var(--glow); letter-spacing: 0.3em;
+    text-transform: uppercase; margin-bottom: 0.75rem;
+    display: flex; align-items: center; gap: 0.75rem;
+  }
+  .section-eyebrow::before {
+    content: ''; display: block; width: 24px; height: 1px;
+    background: var(--glow);
+  }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700; font-size: clamp(2rem, 4vw, 3.2rem);
+    color: var(--text-bright); margin-bottom: 3rem;
+    line-height: 1.1;
+  }
+
+  /* ── FADE-IN SCROLL REVEAL ── */
+  .reveal {
+    opacity: 0; transform: translateY(30px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  /* ── TEAM CARDS ── */
+  .team-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem;
+  }
+  .team-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 1.75rem;
+    position: relative; overflow: hidden;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .team-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--glow2), var(--glow));
+    transform: scaleX(0); transition: transform 0.3s;
+  }
+  .team-card:hover { border-color: var(--glow2); transform: translateY(-4px); }
+  .team-card:hover::before { transform: scaleX(1); }
+  .team-id {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem; color: var(--glow); letter-spacing: 0.2em; margin-bottom: 0.5rem;
+  }
+  .team-name { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 600; color: var(--text-bright); }
+  .team-role { font-size: 0.8rem; color: var(--text-dim); margin-top: 0.25rem; }
+
+  /* ── OBJECTIVES ── */
+  .obj-list { display: flex; flex-direction: column; gap: 1rem; }
+  .obj-item {
+    display: flex; gap: 1.25rem; align-items: flex-start;
+    background: var(--surface); border: 1px solid var(--border);
+    padding: 1.25rem 1.5rem;
+    transition: border-color 0.2s;
+  }
+  .obj-item:hover { border-color: rgba(0,232,122,0.3); }
+  .obj-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 1.5rem; font-weight: 700; color: var(--glow);
+    opacity: 0.3; flex-shrink: 0; line-height: 1;
+    min-width: 2rem;
+  }
+  .obj-text { font-size: 0.95rem; line-height: 1.7; color: var(--text); }
+
+  /* ── LIT SURVEY ── */
+  .lit-table-wrap { overflow-x: auto; }
+  .lit-table {
+    width: 100%; border-collapse: collapse;
+    font-size: 0.82rem;
+  }
+  .lit-table thead th {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--glow); padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--glow2);
+    text-align: left; background: var(--surface);
+  }
+  .lit-table tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+  .lit-table tbody tr:hover { background: var(--surface2); }
+  .lit-table td {
+    padding: 0.85rem 1rem; color: var(--text);
+    vertical-align: top; line-height: 1.55;
+  }
+  .lit-table td:first-child {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem; color: var(--glow); width: 2.5rem;
+  }
+  .lit-table td:nth-child(3) {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem; color: var(--gold);
+  }
+  .venue-badge {
+    display: inline-block;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.55rem; letter-spacing: 0.1em;
+    padding: 0.2rem 0.5rem;
+    border: 1px solid var(--border);
+    color: var(--accent); background: rgba(0,255,170,0.05);
+  }
+
+  /* ── ARCHITECTURE BLOCKS ── */
+  .arch-flow {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 0;
+    background: var(--surface); border: 1px solid var(--border);
+    padding: 2rem;
+    justify-content: center;
+  }
+  .arch-block {
+    background: var(--bg2);
+    border: 1px solid var(--glow2);
+    padding: 0.85rem 1.25rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem; color: var(--glow);
+    text-align: center; line-height: 1.4;
+    position: relative;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    min-width: 120px;
+  }
+  .arch-block:hover {
+    border-color: var(--glow);
+    box-shadow: 0 0 20px rgba(0,232,122,0.15);
+  }
+  .arch-arrow {
+    color: var(--glow2); font-size: 1.2rem; padding: 0 0.5rem;
+    flex-shrink: 0;
+  }
+
+  /* ── METRICS CARDS ── */
+  .metrics-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;
+    margin-bottom: 3rem;
+  }
+  .metric-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 2rem 1.5rem;
+    text-align: center; position: relative; overflow: hidden;
+  }
+  .metric-card::after {
+    content: ''; position: absolute;
+    bottom: 0; left: 0; right: 0; height: 2px;
+  }
+  .metric-card.green::after { background: var(--accent); }
+  .metric-card.blue::after { background: var(--glow); }
+  .metric-card.gold::after { background: var(--gold); }
+
+  .metric-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem; color: var(--text-dim); letter-spacing: 0.2em;
+    text-transform: uppercase; margin-bottom: 1rem;
+  }
+  .metric-value {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800; font-size: 2.8rem; line-height: 1;
+  }
+  .metric-card.green .metric-value { color: var(--accent); }
+  .metric-card.blue .metric-value { color: var(--glow); }
+  .metric-card.gold .metric-value { color: var(--gold); }
+  .metric-unit { font-size: 1rem; font-weight: 400; }
+  .metric-desc { font-size: 0.78rem; color: var(--text-dim); margin-top: 0.5rem; }
+
+  /* ── COMPARISON TABLE ── */
+  .cmp-table {
+    width: 100%; border-collapse: collapse; font-size: 0.88rem;
+  }
+  .cmp-table thead th {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.62rem; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--text-bright); padding: 1rem;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    text-align: center;
+  }
+  .cmp-table thead th:first-child { text-align: left; }
+  .cmp-table tbody tr { border: 1px solid var(--border); }
+  .cmp-table tbody tr:hover td { background: var(--surface2); }
+  .cmp-table td {
+    padding: 1rem; border: 1px solid var(--border);
+    color: var(--text); text-align: center;
+  }
+  .cmp-table td:first-child {
+    text-align: left;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem; color: var(--glow); letter-spacing: 0.1em;
+  }
+  .cmp-table .winner {
+    color: var(--accent); font-weight: 500;
+    background: rgba(0,255,170,0.05);
+  }
+  .cmp-table .winner::after { content: ' ✓'; font-size: 0.7em; }
+  .badge-best {
+    display: inline-block;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.55rem; letter-spacing: 0.1em;
+    padding: 0.2rem 0.5rem;
+    background: rgba(0,255,170,0.1);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+  }
+
+  /* ── REFERENCES ── */
+  .ref-list { display: flex; flex-direction: column; gap: 0.75rem; }
+  .ref-item {
+    display: flex; gap: 1rem;
+    padding: 1rem 1.25rem;
+    background: var(--surface); border: 1px solid var(--border);
+    transition: border-color 0.2s;
+    font-size: 0.82rem; line-height: 1.65; color: var(--text-dim);
+  }
+  .ref-item:hover { border-color: var(--border); color: var(--text); }
+  .ref-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem; color: var(--glow2); flex-shrink: 0;
+    margin-top: 0.15rem;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    position: relative; z-index: 2;
+    border-top: 1px solid var(--border);
+    padding: 3rem;
+    text-align: center;
+  }
+  .footer-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800; font-size: 1.2rem; color: var(--glow);
+    margin-bottom: 0.5rem;
+  }
+  .footer-sub { font-family: 'Space Mono', monospace; font-size: 0.65rem; color: var(--text-dim); letter-spacing: 0.2em; }
+
+  /* ── DIVIDER ── */
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+    max-width: 1200px; margin: 0 auto;
+  }
+
+  /* ── MOTIVATION GRID ── */
+  .motive-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; }
+  .motive-card {
+    background: var(--surface); border: 1px solid var(--border);
+    padding: 1.75rem;
+    position: relative; overflow: hidden;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .motive-card:hover { border-color: rgba(0,232,122,0.25); transform: translateY(-3px); }
+  .motive-icon { font-size: 1.8rem; margin-bottom: 1rem; }
+  .motive-title { font-family: 'Syne', sans-serif; font-weight: 600; color: var(--text-bright); font-size: 0.95rem; margin-bottom: 0.5rem; }
+  .motive-desc { font-size: 0.82rem; color: var(--text-dim); line-height: 1.65; }
+
+  /* ── BOOTH TABLE ── */
+  .booth-section { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+  .booth-card {
+    background: var(--surface); border: 1px solid var(--border); padding: 1.75rem;
+  }
+  .booth-title { font-family: 'Syne', sans-serif; font-weight: 700; color: var(--text-bright); margin-bottom: 1rem; font-size: 1rem; }
+  .booth-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+  .booth-table th {
+    font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 0.1em;
+    padding: 0.5rem 0.75rem; background: rgba(0,168,84,0.12);
+    color: var(--glow); border: 1px solid var(--border); text-align: center;
+  }
+  .booth-table td {
+    padding: 0.4rem 0.75rem; border: 1px solid var(--border);
+    color: var(--text); text-align: center; font-family: 'Space Mono', monospace; font-size: 0.7rem;
+  }
+  .booth-table tr:nth-child(even) td { background: var(--surface2); }
+  .booth-table .highlight-op { color: var(--accent); font-weight: 700; }
+
+  /* ── SECTION DIVIDER GLOW ── */
+  .glow-line {
+    height: 1px;
+    background: linear-gradient(90deg, transparent 0%, var(--glow2) 30%, var(--glow) 50%, var(--glow2) 70%, transparent 100%);
+    max-width: 1200px; margin: 0 auto;
+    box-shadow: 0 0 20px rgba(0,232,122,0.3);
+  }
+
+  /* ── CONCLUSION ── */
+  .conclusion-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+  .conc-card {
+    background: var(--surface); border: 1px solid var(--border);
+    padding: 2rem;
+  }
+  .conc-num { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--glow); letter-spacing: 0.2em; margin-bottom: 0.5rem; }
+  .conc-val { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.8rem; color: var(--text-bright); }
+  .conc-val span { font-size: 0.9rem; color: var(--accent); }
+  .conc-label { font-size: 0.82rem; color: var(--text-dim); margin-top: 0.35rem; }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 8px rgba(0,232,122,0.2); }
+    50% { box-shadow: 0 0 24px rgba(0,232,122,0.5), 0 0 48px rgba(0,168,84,0.2); }
+  }
+
+  .pulse { animation: pulse-glow 3s ease-in-out infinite; }
+
+  @media (max-width: 768px) {
+    nav { padding: 1rem 1.5rem; }
+    .nav-links { display: none; }
+    section { padding: 4rem 1.5rem; }
+    #hero { padding: 7rem 1.5rem 3rem; }
+    .metrics-grid { grid-template-columns: 1fr; }
+    .booth-section { grid-template-columns: 1fr; }
+    .conclusion-grid { grid-template-columns: 1fr; }
+    body { cursor: auto; }
+    .cursor, .cursor-ring { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+<div class="circuit-bg"></div>
+<div class="noise"></div>
+
+<!-- ── NAV ── -->
+<nav>
+  <div class="nav-logo">ADR-SA &nbsp;/&nbsp; ECE Portfolio</div>
+  <ul class="nav-links">
+    <li><a href="#intro">Intro</a></li>
+    <li><a href="#objectives">Objectives</a></li>
+    <li><a href="#survey">Survey</a></li>
+    <li><a href="#proposed">Method</a></li>
+    <li><a href="#results">Results</a></li>
+    <li><a href="#references">References</a></li>
+  </ul>
+</nav>
+
+<!-- ── HERO ── -->
+<div id="home" style="position:relative;z-index:2;overflow:hidden;">
+<div style="max-width:1200px;margin:0 auto;padding:0 3rem;position:relative;">
+<div id="hero">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+
+  <p class="hero-tag">21BELC31 · Research Project Phase II · March 2026</p>
+
+  <h1 class="hero-title">
+    Adaptive<br>
+    <span class="highlight">Dual-Radix</span><br>
+    <span class="accent-line">Precision</span><br>
+    Systolic Array
+  </h1>
+
+  <p class="hero-sub">
+    An energy-aware machine learning accelerator architecture combining <strong style="color:var(--text-bright)">Radix-8 Booth encoding</strong> with a <strong style="color:var(--text-bright)">Radix-4 Adder</strong> to deliver 45.97% delay reduction and 14.81% power savings over conventional systolic designs.
+  </p>
+
+  <div class="hero-meta">
+    <div class="hero-meta-item">
+      <span class="hero-meta-label">Institution</span>
+      <span class="hero-meta-value">Avinashilingam Institute</span>
+    </div>
+    <div class="hero-meta-item">
+      <span class="hero-meta-label">Department</span>
+      <span class="hero-meta-value">ECE · School of Engineering</span>
+    </div>
+    <div class="hero-meta-item">
+      <span class="hero-meta-label">Guide</span>
+      <span class="hero-meta-value">Mrs. S. Manjulambigai</span>
+    </div>
+    <div class="hero-meta-item">
+      <span class="hero-meta-label">Tools</span>
+      <span class="hero-meta-value">Verilog · ModelSim · Xilinx ISE</span>
+    </div>
+  </div>
+
+  <div class="hero-cta">
+    <a href="#intro" class="btn-primary pulse"><span>Explore Project ↓</span></a>
+    <a href="#results" class="btn-primary"><span>View Results</span></a>
+  </div>
+</div>
+</div>
+</div>
+
+<!-- ── TEAM ── -->
+<div style="position:relative;z-index:2;background:rgba(7,26,12,0.85);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:3rem;backdrop-filter:blur(4px);">
+<div style="max-width:1200px;margin:0 auto;">
+  <p class="section-eyebrow">Presented By</p>
+  <div class="team-grid reveal">
+    <div class="team-card">
+      <div class="team-id">22UEL010</div>
+      <div class="team-name">Gopika P L</div>
+      <div class="team-role">Team Member</div>
+    </div>
+    <div class="team-card">
+      <div class="team-id">22UEL045</div>
+      <div class="team-name">Supriya M</div>
+      <div class="team-role">Team Member</div>
+    </div>
+    <div class="team-card">
+      <div class="team-id">22UEL050</div>
+      <div class="team-name">Shalini T</div>
+      <div class="team-role">Team Member</div>
+    </div>
+    <div class="team-card">
+      <div class="team-id">22UEL031</div>
+      <div class="team-name">Priyanka Gandhi A</div>
+      <div class="team-role">Team Member</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ── INTRODUCTION ── -->
+<section id="intro">
+  <div class="reveal">
+    <p class="section-eyebrow">01</p>
+    <h2 class="section-title">Introduction</h2>
+  </div>
+  <div class="reveal" style="display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-bottom:2.5rem;">
+    <div style="background:var(--surface);border:1px solid var(--border);padding:2rem;">
+      <p style="font-size:0.95rem;line-height:1.8;color:var(--text);">Machine Learning algorithms demand efficient, high-speed hardware for real-time inference and training. <strong style="color:var(--text-bright)">Systolic Arrays (SAs)</strong> have become the architecture of choice in ML accelerators — including Google's TPU — owing to their inherent data parallelism and regular structure.</p>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);padding:2rem;">
+      <p style="font-size:0.95rem;line-height:1.8;color:var(--text);">Conventional systolic arrays suffer from <strong style="color:var(--accent2)">high critical-path delay</strong>, excessive area complexity, and high dynamic power consumption — bottlenecks that this project directly addresses through dual-radix factorization.</p>
+    </div>
+  </div>
+  <div class="reveal" style="background:var(--surface);border:1px solid var(--border);padding:2rem;">
+    <p class="section-eyebrow" style="margin-bottom:1rem;">Core Limitations of Conventional SA</p>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;">
+      <div style="text-align:center;padding:1rem;">
+        <div style="font-size:2rem;margin-bottom:0.5rem;">⏱</div>
+        <div style="font-family:'Syne',sans-serif;font-weight:700;color:var(--accent2);font-size:1rem;margin-bottom:0.35rem;">High Delay</div>
+        <div style="font-size:0.8rem;color:var(--text-dim);line-height:1.6;">Carry propagation through multiple CPA stages creates long critical paths</div>
+      </div>
+      <div style="text-align:center;padding:1rem;">
+        <div style="font-size:2rem;margin-bottom:0.5rem;">📐</div>
+        <div style="font-family:'Syne',sans-serif;font-weight:700;color:var(--accent2);font-size:1rem;margin-bottom:0.35rem;">Area Complexity</div>
+        <div style="font-size:0.8rem;color:var(--text-dim);line-height:1.6;">Repeated instantiation of large multiplier and adder circuits across the array</div>
+      </div>
+      <div style="text-align:center;padding:1rem;">
+        <div style="font-size:2rem;margin-bottom:0.5rem;">⚡</div>
+        <div style="font-family:'Syne',sans-serif;font-weight:700;color:var(--accent2);font-size:1rem;margin-bottom:0.35rem;">Power Drain</div>
+        <div style="font-size:0.8rem;color:var(--text-dim);line-height:1.6;">High dynamic power from redundant switching activity across PE stages</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="glow-line"></div>
+
+<!-- ── OBJECTIVES ── -->
+<section id="objectives">
+  <div class="reveal">
+    <p class="section-eyebrow">02</p>
+    <h2 class="section-title">Objectives</h2>
+  </div>
+  <div class="obj-list">
+    <div class="obj-item reveal"><div class="obj-num">01</div><div class="obj-text">Design a factored systolic array architecture using <strong style="color:var(--text-bright)">radix-8 Booth multiplication</strong> and a <strong style="color:var(--text-bright)">Radix-4 Adder</strong> for machine learning acceleration.</div></div>
+    <div class="obj-item reveal"><div class="obj-num">02</div><div class="obj-text">Reduce critical path delay and improve computation speed compared to conventional CPA-based systolic arrays.</div></div>
+    <div class="obj-item reveal"><div class="obj-num">03</div><div class="obj-text">Minimize power consumption and silicon area through <strong style="color:var(--text-bright)">early carry generation</strong> and compressed adder logic.</div></div>
+    <div class="obj-item reveal"><div class="obj-num">04</div><div class="obj-text">Overcome inefficiencies of conventional multiplier architectures including radix-2, radix-4, and standard CPA designs.</div></div>
+    <div class="obj-item reveal"><div class="obj-num">05</div><div class="obj-text">Support real-time ML applications such as <strong style="color:var(--text-bright)">image processing, NLP, and video compression</strong>.</div></div>
+    <div class="obj-item reveal"><div class="obj-num">06</div><div class="obj-text">Demonstrate scalable performance with a <strong style="color:var(--text-bright)">3×3 ADR-SA</strong> verified via ModelSim functional simulation.</div></div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ── MOTIVATION ── -->
+<section id="motivation">
+  <div class="reveal">
+    <p class="section-eyebrow">03</p>
+    <h2 class="section-title">Motivation of the Research</h2>
+  </div>
+  <div class="motive-grid">
+    <div class="motive-card reveal">
+      <div class="motive-icon">⚡</div>
+      <div class="motive-title">Reduce Critical Path Delay</div>
+      <div class="motive-desc">Conventional CPA-based PEs introduce sequential carry ripple delays that limit clock frequency. Eliminating these through higher-radix adders directly improves throughput.</div>
+    </div>
+    <div class="motive-card reveal">
+      <div class="motive-icon">📦</div>
+      <div class="motive-title">Minimize Power & Area</div>
+      <div class="motive-desc">Early carry generation and compressed adder logic reduce switching activity and gate count, achieving a leaner implementation suitable for embedded ML systems.</div>
+    </div>
+    <div class="motive-card reveal">
+      <div class="motive-icon">🔬</div>
+      <div class="motive-title">Overcome Multiplier Inefficiencies</div>
+      <div class="motive-desc">Radix-4 Booth encoding leaves one-third more partial products than radix-8, creating unnecessarily deep compression trees and slower accumulation.</div>
+    </div>
+    <div class="motive-card reveal">
+      <div class="motive-icon">🤖</div>
+      <div class="motive-title">Enable Real-Time Edge ML</div>
+      <div class="motive-desc">Image processing, NLP inference, and video analytics require low-latency, energy-proportional arithmetic — exactly the design targets of this architecture.</div>
+    </div>
+    <div class="motive-card reveal">
+      <div class="motive-icon">📈</div>
+      <div class="motive-title">Scalable Architecture</div>
+      <div class="motive-desc">The design must scale from single PEs to full arrays without exponential power growth. The ADR-SA achieves linear scalability, confirmed by the 3×3 array simulation.</div>
+    </div>
+  </div>
+</section>
+
+<div class="glow-line"></div>
+
+<!-- ── LITERATURE SURVEY ── -->
+<section id="survey">
+  <div class="reveal">
+    <p class="section-eyebrow">04</p>
+    <h2 class="section-title">Literature Survey</h2>
+    <p style="font-size:0.9rem;color:var(--text-dim);margin-bottom:2rem;max-width:65ch;">A comprehensive review of ten significant works in systolic array design and ML accelerator optimization was conducted across IEEE TVLSI, IEEE TCAS-II, ACM/IEEE DAC, and other leading venues.</p>
+  </div>
+  <div class="lit-table-wrap reveal">
+    <table class="lit-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Author(s)</th>
+          <th>Year</th>
+          <th>Venue</th>
+          <th>Key Contribution & Finding</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>01</td><td>K. Inayat, I. Ullah, J. Chung</td><td>2024</td><td><span class="venue-badge">IEEE TVLSI</span></td><td>Radix-8 factored SA for ML — significantly improves area, power, and delay over conventional SAs in resource-constrained environments.</td></tr>
+        <tr><td>02</td><td>H. Lee, J. Park, S. Kang</td><td>2024</td><td><span class="venue-badge">IEEE TVLSI</span></td><td>Area-efficient redundancy for systolic arrays — high fault coverage and low area overhead for dependable edge AI accelerators.</td></tr>
+        <tr><td>03</td><td>M. A. Shafique, K. Inayat, J. A. Lee</td><td>2023</td><td><span class="venue-badge">HEART Symp.</span></td><td>CSA-based radix-4 Gemmini SA — higher speed, lower latency, and better energy efficiency with minimal area overhead.</td></tr>
+        <tr><td>04</td><td>K. Inayat, J. Chung</td><td>2022</td><td><span class="venue-badge">IEEE TVLSI</span></td><td>Hybrid accumulator FSA — improved throughput and energy efficiency over standard systolic designs.</td></tr>
+        <tr><td>05</td><td>H. Waris, C. Wang, W. Liu, F. Lombardi</td><td>2021</td><td><span class="venue-badge">IEEE TCAS-II</span></td><td>Approximate radix-8 Booth multipliers for FPGA — significant delay and energy improvements with minimal accuracy loss.</td></tr>
+        <tr><td>06</td><td>K. Inayat, J. Chung</td><td>2021</td><td><span class="venue-badge">Electronics</span></td><td>CPA-factored Gemmini SA — reduces latency and energy usage in ML acceleration hardware.</td></tr>
+        <tr><td>07</td><td>I. Ullah, K. Inayat, J.-S. Yang, J. Chung</td><td>2020</td><td><span class="venue-badge">ACM/IEEE DAC</span></td><td>Radix-8 factored SA for tensor processing — higher throughput and lower arithmetic redundancy in tensor operations.</td></tr>
+        <tr><td>08</td><td>Z.-G. Liu, P. N. Whatmough, M. Mattina</td><td>2020</td><td><span class="venue-badge">IEEE CAL</span></td><td>Systolic tensor array with structured sparsity — enhances inference speed and reduces power for mobile AI systems.</td></tr>
+        <tr><td>09</td><td>S. Ryu, N. Park, J.-J. Kim</td><td>2019</td><td><span class="venue-badge">IEEE TVLSI</span></td><td>Feedforward-cutset-free pipelined MAC — higher speed, lower latency, better energy efficiency for ML accelerators.</td></tr>
+        <tr><td>10</td><td>A. A. Del Barrio, R. Hermida</td><td>2017</td><td><span class="venue-badge">DATE Conf.</span></td><td>Slack-based deployment of radix-8 Booth multipliers — minimizes area and critical path delay while maintaining performance.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ── PROPOSED METHOD ── -->
+<section id="proposed">
+  <div class="reveal">
+    <p class="section-eyebrow">05</p>
+    <h2 class="section-title">Proposed Method</h2>
+  </div>
+
+  <!-- Architecture Flow -->
+  <div class="reveal" style="margin-bottom:3rem;">
+    <p class="section-eyebrow" style="margin-bottom:1.5rem;">ADR-SA Data Flow</p>
+    <div class="arch-flow">
+      <div class="arch-block">Input<br>Data</div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-block">Hard Multiple<br>Carry Portioned<br>FSA</div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-block">Radix-8<br>Booth<br>Encoding</div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-block">Partial Product<br>Reduction<br>(Wallace Tree)</div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-block">Processing<br>Element (PE)</div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-block">Final Addition<br>Radix-4<br>Adder</div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-block">Output<br>Accumulation</div>
+    </div>
+  </div>
+
+  <!-- Booth Encoding Comparison -->
+  <div class="reveal" style="margin-bottom:3rem;">
+    <p class="section-eyebrow" style="margin-bottom:1.5rem;">Booth Encoding: Radix-4 vs Radix-8</p>
+    <div class="booth-section">
+      <div class="booth-card">
+        <div class="booth-title">Radix-4 Booth Encoding</div>
+        <p style="font-size:0.8rem;color:var(--text-dim);margin-bottom:1rem;line-height:1.6;">Groups bits in sets of 3 — generates ~n/2 partial products. Selects from {0, ±X, ±2X}.</p>
+        <table class="booth-table">
+          <thead><tr><th>Y(i+1)</th><th>Y(i)</th><th>Y(i-1)</th><th>Mi</th><th>Operation</th></tr></thead>
+          <tbody>
+            <tr><td>0</td><td>0</td><td>0</td><td>0</td><td class="highlight-op">0X</td></tr>
+            <tr><td>0</td><td>0</td><td>1</td><td>+1</td><td class="highlight-op">+1X</td></tr>
+            <tr><td>0</td><td>1</td><td>0</td><td>+1</td><td class="highlight-op">+1X</td></tr>
+            <tr><td>0</td><td>1</td><td>1</td><td>+2</td><td class="highlight-op">+2X</td></tr>
+            <tr><td>1</td><td>0</td><td>0</td><td>−2</td><td class="highlight-op">−2X</td></tr>
+            <tr><td>1</td><td>0</td><td>1</td><td>−1</td><td class="highlight-op">−1X</td></tr>
+            <tr><td>1</td><td>1</td><td>0</td><td>−1</td><td class="highlight-op">−1X</td></tr>
+            <tr><td>1</td><td>1</td><td>1</td><td>0</td><td class="highlight-op">0X</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="booth-card">
+        <div class="booth-title">Radix-8 Booth Encoding <span style="font-size:0.7rem;color:var(--accent);margin-left:0.5rem;">✦ Proposed</span></div>
+        <p style="font-size:0.8rem;color:var(--text-dim);margin-bottom:1rem;line-height:1.6;">Groups bits in sets of 4 — generates ~n/3 partial products. Selects from {0, ±X, ±2X, ±3X, ±4X}.</p>
+        <table class="booth-table">
+          <thead><tr><th>A</th><th>B</th><th>C</th><th>D</th><th>Operation on X</th></tr></thead>
+          <tbody>
+            <tr><td>0</td><td>0</td><td>0</td><td>0</td><td class="highlight-op">0X</td></tr>
+            <tr><td>0</td><td>0</td><td>0</td><td>1</td><td class="highlight-op">+1X</td></tr>
+            <tr><td>0</td><td>0</td><td>1</td><td>1</td><td class="highlight-op">+2X</td></tr>
+            <tr><td>0</td><td>1</td><td>0</td><td>1</td><td class="highlight-op">+3X</td></tr>
+            <tr><td>0</td><td>1</td><td>1</td><td>1</td><td class="highlight-op">+4X</td></tr>
+            <tr><td>1</td><td>0</td><td>0</td><td>0</td><td class="highlight-op">−4X</td></tr>
+            <tr><td>1</td><td>0</td><td>1</td><td>0</td><td class="highlight-op">−3X</td></tr>
+            <tr><td>1</td><td>1</td><td>1</td><td>0</td><td class="highlight-op">−1X</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Radix-4 Adder -->
+  <div class="reveal" style="background:var(--surface);border:1px solid var(--border);padding:2rem;margin-bottom:2rem;">
+    <p class="section-eyebrow" style="margin-bottom:1.25rem;">Radix-4 Adder (RD4A) — Boolean Equations</p>
+    <p style="font-size:0.9rem;color:var(--text);line-height:1.75;margin-bottom:1.25rem;">The RD4A processes <strong style="color:var(--text-bright)">two bits simultaneously</strong>, reducing propagation delay and power versus a traditional binary adder. It has 5 inputs (Cin, Ai, Ai+1, Bi, Bi+1) and 3 outputs (Cout, Sumi, Sumi+1).</p>
+    <div style="display:flex;flex-direction:column;gap:0.75rem;">
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:1rem 1.5rem;font-family:'Space Mono',monospace;font-size:0.78rem;color:var(--accent);">
+        C<sub>out</sub> = A<sub>i+1</sub>·B<sub>i+1</sub> + (A<sub>i</sub>·B<sub>i</sub>)(A<sub>i+1</sub> + B<sub>i+1</sub>) + C<sub>in</sub>·((A<sub>i</sub> + B<sub>i</sub>)(A<sub>i+1</sub> + B<sub>i+1</sub>))
+      </div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:1rem 1.5rem;font-family:'Space Mono',monospace;font-size:0.78rem;color:var(--glow);">
+        Sum<sub>i+1</sub> = (A<sub>i+1</sub> ⊕ B<sub>i+1</sub>) ⊕ (A<sub>i</sub>·B<sub>i</sub> + C<sub>in</sub>·A<sub>i</sub> + C<sub>in</sub>·B<sub>i</sub>)
+      </div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:1rem 1.5rem;font-family:'Space Mono',monospace;font-size:0.78rem;color:var(--glow2);">
+        Sum<sub>i</sub> = (A<sub>i</sub> ⊕ B<sub>i</sub>) ⊕ C<sub>in</sub>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="glow-line"></div>
+
+<!-- ── RESULTS ── -->
+<section id="results">
+  <div class="reveal">
+    <p class="section-eyebrow">06</p>
+    <h2 class="section-title">Results & Discussion</h2>
+    <p style="font-size:0.9rem;color:var(--text-dim);margin-bottom:3rem;max-width:65ch;">All synthesis results obtained under identical Xilinx ISE conditions — Speed Grade: -7, 8-bit operands, same device target.</p>
+  </div>
+
+  <!-- Key Metrics -->
+  <div class="metrics-grid reveal">
+    <div class="metric-card green">
+      <div class="metric-label">Delay Reduction</div>
+      <div class="metric-value">45<span class="metric-unit">.97%</span></div>
+      <div class="metric-desc">8.800 ns → 4.755 ns</div>
+    </div>
+    <div class="metric-card blue">
+      <div class="metric-label">Frequency Gain</div>
+      <div class="metric-value">210<span class="metric-unit"> MHz</span></div>
+      <div class="metric-desc">Up from 113.636 MHz (1.85×)</div>
+    </div>
+    <div class="metric-card gold">
+      <div class="metric-label">Power Savings</div>
+      <div class="metric-value">14<span class="metric-unit">.81%</span></div>
+      <div class="metric-desc">243 mW → 207 mW</div>
+    </div>
+  </div>
+
+  <!-- Comparison Table -->
+  <div class="reveal">
+    <p class="section-eyebrow" style="margin-bottom:1.5rem;">CPA vs CSA vs Radix-4 Adder — Xilinx ISE Synthesis</p>
+    <table class="cmp-table">
+      <thead>
+        <tr>
+          <th>Metric</th>
+          <th>CPA (Carry Propagate)</th>
+          <th>CSA (Carry Select)</th>
+          <th>Radix-4 Adder ✦</th>
+          <th>Best</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>AREA (Gates)</td>
+          <td>1916</td>
+          <td>1988 <span style="color:var(--red);font-size:0.75em;">(+3.76%)</span></td>
+          <td class="winner">1703 (−11.11%)</td>
+          <td><span class="badge-best">Radix-4</span></td>
+        </tr>
+        <tr>
+          <td>POWER (mW)</td>
+          <td>243</td>
+          <td>223 <span style="color:var(--text-dim);font-size:0.75em;">(−8.23%)</span></td>
+          <td class="winner">207 (−14.81%)</td>
+          <td><span class="badge-best">Radix-4</span></td>
+        </tr>
+        <tr>
+          <td>DELAY (ns)</td>
+          <td>8.800</td>
+          <td>8.696 <span style="color:var(--text-dim);font-size:0.75em;">(−1.18%)</span></td>
+          <td class="winner">4.755 (−45.97%)</td>
+          <td><span class="badge-best">Radix-4</span></td>
+        </tr>
+        <tr>
+          <td>MAX FREQ (MHz)</td>
+          <td>113.636</td>
+          <td>~115</td>
+          <td class="winner">210.305</td>
+          <td><span class="badge-best">Radix-4</span></td>
+        </tr>
+        <tr>
+          <td>4-INPUT LUTs</td>
+          <td>275</td>
+          <td>—</td>
+          <td class="winner">222</td>
+          <td><span class="badge-best">Radix-4</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 3x3 Array -->
+  <div class="reveal" style="margin-top:3rem;background:var(--surface);border:1px solid var(--border);padding:2rem;">
+    <p class="section-eyebrow" style="margin-bottom:1.5rem;">3×3 ADR-SA Array — Verified Outputs</p>
+    <p style="font-size:0.88rem;color:var(--text-dim);line-height:1.7;margin-bottom:1.5rem;">The 3×3 ADR-SA was implemented and verified in ModelSim. Data moves sequentially from one PE to the next with synchronized computation. Power rises linearly (not exponentially) confirming linear scalability.</p>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.75rem;">
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:1rem;text-align:center;">
+        <div style="font-family:'Space Mono',monospace;font-size:0.6rem;color:var(--glow);letter-spacing:0.15em;margin-bottom:0.4rem;">PE 1,1</div>
+        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1.5rem;color:var(--text-bright);">30</div>
+      </div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:1rem;text-align:center;">
+        <div style="font-family:'Space Mono',monospace;font-size:0.6rem;color:var(--glow);letter-spacing:0.15em;margin-bottom:0.4rem;">PE 1,2</div>
+        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1.5rem;color:var(--text-bright);">36</div>
+      </div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:1rem;text-align:center;">
+        <div style="font-family:'Space Mono',monospace;font-size:0.6rem;color:var(--glow);letter-spacing:0.15em;margin-bottom:0.4rem;">PE 1,3</div>
+        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1.5rem;color:var(--text-bright);">42</div>
+      </div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:1rem;text-align:center;">
+        <div style="font-family:'Space Mono',monospace;font-size:0.6rem;color:var(--glow);letter-spacing:0.15em;margin-bottom:0.4rem;">PE 2,1</div>
+        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1.5rem;color:var(--text-bright);">66</div>
+      </div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:1rem;text-align:center;">
+        <div style="font-family:'Space Mono',monospace;font-size:0.6rem;color:var(--glow);letter-spacing:0.15em;margin-bottom:0.4rem;">PE 2,2</div>
+        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1.5rem;color:var(--text-bright);">81</div>
+      </div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:1rem;text-align:center;">
+        <div style="font-family:'Space Mono',monospace;font-size:0.6rem;color:var(--glow);letter-spacing:0.15em;margin-bottom:0.4rem;">PE 2,3</div>
+        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1.5rem;color:var(--text-bright);">96</div>
+      </div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:1rem;text-align:center;">
+        <div style="font-family:'Space Mono',monospace;font-size:0.6rem;color:var(--glow);letter-spacing:0.15em;margin-bottom:0.4rem;">PE 3,1</div>
+        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1.5rem;color:var(--text-bright);">102</div>
+      </div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:1rem;text-align:center;">
+        <div style="font-family:'Space Mono',monospace;font-size:0.6rem;color:var(--glow);letter-spacing:0.15em;margin-bottom:0.4rem;">PE 3,2</div>
+        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1.5rem;color:var(--text-bright);">126</div>
+      </div>
+      <div style="background:var(--bg2);border:1px solid var(--border);padding:1rem;text-align:center;">
+        <div style="font-family:'Space Mono',monospace;font-size:0.6rem;color:var(--glow);letter-spacing:0.15em;margin-bottom:0.4rem;">PE 3,3</div>
+        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:1.5rem;color:var(--text-bright);">150</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ── CONCLUSION ── -->
+<section id="conclusion">
+  <div class="reveal">
+    <p class="section-eyebrow">07</p>
+    <h2 class="section-title">Conclusion</h2>
+    <p style="font-size:0.95rem;color:var(--text);line-height:1.8;max-width:75ch;margin-bottom:3rem;">The ADR-SA integrates two complementary optimizations — Radix-8 Booth encoding and a Radix-4 Adder — to simultaneously address the three core bottlenecks of conventional systolic arrays. The result is a balanced, scalable architecture validated under identical Xilinx ISE synthesis conditions.</p>
+  </div>
+  <div class="conclusion-grid reveal">
+    <div class="conc-card">
+      <div class="conc-num">AREA REDUCTION</div>
+      <div class="conc-val">−11.11<span>%</span></div>
+      <div class="conc-label">1916 → 1703 equivalent gates</div>
+    </div>
+    <div class="conc-card">
+      <div class="conc-num">POWER REDUCTION</div>
+      <div class="conc-val">−14.81<span>%</span></div>
+      <div class="conc-label">243 mW → 207 mW total power</div>
+    </div>
+    <div class="conc-card">
+      <div class="conc-num">DELAY REDUCTION</div>
+      <div class="conc-val">−45.97<span>%</span></div>
+      <div class="conc-label">8.800 ns → 4.755 ns critical path</div>
+    </div>
+    <div class="conc-card">
+      <div class="conc-num">FREQUENCY GAIN</div>
+      <div class="conc-val">+85<span>%</span></div>
+      <div class="conc-label">113.6 MHz → 210.3 MHz max clock</div>
+    </div>
+  </div>
+  <div class="reveal" style="margin-top:2rem;background:var(--surface);border:1px solid var(--border);padding:2rem;">
+    <p style="font-size:0.9rem;line-height:1.8;color:var(--text);">The 3×3 ADR-SA array-level simulation confirms <strong style="color:var(--text-bright)">functional correctness</strong> and <strong style="color:var(--text-bright)">linear scalability</strong>, making the ADR-SA a strong candidate for energy-constrained ML accelerators in edge computing, image processing, NLP, and video compression applications.</p>
+  </div>
+</section>
+
+<div class="glow-line"></div>
+
+<!-- ── REFERENCES ── -->
+<section id="references">
+  <div class="reveal">
+    <p class="section-eyebrow">08</p>
+    <h2 class="section-title">References</h2>
+  </div>
+  <div class="ref-list reveal">
+    <div class="ref-item"><div class="ref-num">[1]</div><div>K. Inayat, I. Ullah, and J. Chung, "Factored systolic arrays based on radix-8 multiplication for machine learning acceleration," <em>IEEE Trans. VLSI Syst.</em>, vol. 32, no. 7, pp. 1205–1215, Jul. 2024.</div></div>
+    <div class="ref-item"><div class="ref-num">[2]</div><div>H. Lee, J. Park, and S. Kang, "An area-efficient systolic array redundancy architecture for reliable AI accelerator," <em>IEEE Trans. VLSI Syst.</em>, vol. 32, no. 10, pp. 1950–1954, Oct. 2024.</div></div>
+    <div class="ref-item"><div class="ref-num">[3]</div><div>M. A. Shafique, K. Inayat, and J. A. Lee, "CSA based radix-4 Gemmini systolic array for machine learning applications," in <em>Proc. HEART</em>, 2023, pp. 93–99.</div></div>
+    <div class="ref-item"><div class="ref-num">[4]</div><div>K. Inayat and J. Chung, "Hybrid accumulator factored systolic array for machine learning acceleration," <em>IEEE Trans. VLSI Syst.</em>, vol. 30, no. 7, pp. 881–892, Jul. 2022.</div></div>
+    <div class="ref-item"><div class="ref-num">[5]</div><div>H. Waris, C. Wang, W. Liu, and F. Lombardi, "AxBMs: Approximate radix-8 Booth multipliers for high-performance FPGA-based accelerators," <em>IEEE Trans. Circuits Syst. II</em>, vol. 68, no. 5, pp. 1566–1570, May 2021.</div></div>
+    <div class="ref-item"><div class="ref-num">[6]</div><div>K. Inayat and J. Chung, "Carry-propagation-adder-factored Gemmini systolic array for machine learning acceleration," <em>Electronics</em>, vol. 10, no. 6, p. 652, Mar. 2021.</div></div>
+    <div class="ref-item"><div class="ref-num">[7]</div><div>I. Ullah, K. Inayat, J.-S. Yang, and J. Chung, "Factored radix-8 systolic array for tensor processing," in <em>Proc. 57th ACM/IEEE DAC</em>, 2020, pp. 1–6.</div></div>
+    <div class="ref-item"><div class="ref-num">[8]</div><div>Z.-G. Liu, P. N. Whatmough, and M. Mattina, "Systolic tensor array: An efficient structured-sparse GEMM accelerator for mobile CNN inference," <em>IEEE Comput. Archit. Lett.</em>, vol. 19, no. 1, pp. 34–37, Jun. 2020.</div></div>
+    <div class="ref-item"><div class="ref-num">[9]</div><div>S. Ryu, N. Park, and J.-J. Kim, "Feedforward-cutset-free pipelined multiply-accumulate unit for the machine learning accelerator," <em>IEEE Trans. VLSI Syst.</em>, vol. 27, no. 1, pp. 138–146, Jan. 2019.</div></div>
+    <div class="ref-item"><div class="ref-num">[10]</div><div>A. A. Del Barrio and R. Hermida, "A slack-based approach to efficiently deploy radix 8 Booth multipliers," in <em>Proc. DATE</em>, Mar. 2017, pp. 1153–1158.</div></div>
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="footer-logo">ADR-SA</div>
+  <div class="footer-sub" style="margin-top:0.5rem;">Adaptive Dual-Radix Precision Systolic Architecture</div>
+  <div class="footer-sub" style="margin-top:0.25rem;">Dept of ECE · Avinashilingam Institute · 2026</div>
+</footer>
+
+<script>
+  // Custom cursor
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursorRing');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    cursor.style.left = mx + 'px';
+    cursor.style.top = my + 'px';
+  });
+
+  function animateRing() {
+    rx += (mx - rx) * 0.12;
+    ry += (my - ry) * 0.12;
+    ring.style.left = rx + 'px';
+    ring.style.top = ry + 'px';
+    requestAnimationFrame(animateRing);
+  }
+  animateRing();
+
+  document.querySelectorAll('a, button, .team-card, .obj-item, .motive-card').forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      ring.style.width = '48px'; ring.style.height = '48px';
+      ring.style.borderColor = 'rgba(0,255,170,0.5)';
+    });
+    el.addEventListener('mouseleave', () => {
+      ring.style.width = '32px'; ring.style.height = '32px';
+      ring.style.borderColor = 'rgba(0,232,122,0.4)';
+    });
+  });
+
+  // Scroll reveal
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('visible'), 80);
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.08 });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  // Nav active state
+  const sections = document.querySelectorAll('section[id], div[id]');
+  const navLinks = document.querySelectorAll('.nav-links a');
+  window.addEventListener('scroll', () => {
+    let cur = '';
+    sections.forEach(s => { if (window.scrollY >= s.offsetTop - 120) cur = s.id; });
+    navLinks.forEach(a => {
+      a.style.color = a.getAttribute('href') === '#' + cur ? 'var(--glow)' : '';
+    });
+  });
+
+  // Stagger reveal for list items
+  document.querySelectorAll('.obj-item.reveal, .ref-item.reveal, .motive-card.reveal, .team-card').forEach((el, i) => {
+    el.style.transitionDelay = (i * 0.07) + 's';
+  });
+</script>
+</body>
+</html>
